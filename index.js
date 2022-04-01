@@ -1,4 +1,5 @@
 const axios = require('axios');
+const util = require('util');
 
 const ENDPOINT = 'http://localhost:3000';
 
@@ -26,23 +27,27 @@ const getAccessToken = async (refresh_token) => {
 
 // get accounts list
 const getAccountList = (token) => {
-    const headers = { 'Content-Type': 'application/json', Authorization: token };
-    return axios.get(`${ENDPOINT}/accounts`, headers);
+    const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+    return axios.get(`${ENDPOINT}/accounts`, { headers });
 }
 
 // get account transactions
 const getTransaction = (accNumber, token) => {
-    const headers = { 'Content-Type': 'application/json', Authorization: token };
-    return axios.get(`${ENDPOINT}/accounts/${accNumber}/transactions`, headers);
+    const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
+    return axios.get(`${ENDPOINT}/accounts/${accNumber}/transactions`, { headers });
 }
 
 // join account and transaction and parse it in one object
-const joinTransactionsAndAccounts = async (accountList) => {
+const joinTransactionsAndAccounts = async (accountList, token) => {
     // functionnal programmation we dont want to mutate the array in param
     const accounts = [...accountList];
     for (const account of accounts) {
-        const { transactions } = await getTransaction(account.acc_number);
-        account.transactions = transactions;
+        try {
+            const { data: { transactions } } = await getTransaction(account.acc_number, token);
+            account.transactions = transactions;
+        } catch (err) {
+            console.error(err.message)
+        }
     }
 
     return accounts;
@@ -53,12 +58,14 @@ const getAccountsAndTransaction = async (credentials) => {
     try {
         const { data: { refresh_token } } = await login(credentials);
         const { data: { access_token } } = await getAccessToken(refresh_token);
-        const { account: accountList } = await getAccountList(access_token);
-        return joinTransactionsAndAccounts(accountList);
+        const { data: { account: accountList } } = await getAccountList(access_token);
+        return joinTransactionsAndAccounts(accountList, access_token);
 
     } catch (err) {
         console.error(err.message);
     }
 }
 
-getAccountsAndTransaction(CREDENTIALS);
+getAccountsAndTransaction(CREDENTIALS).then((res) => {
+    console.log(util.inspect(res, false, null, true))
+});
