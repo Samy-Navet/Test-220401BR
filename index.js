@@ -11,16 +11,17 @@ const CREDENTIALS = { user: 'BankinUser', password: '12345678' };
 
 // login to get refresh token
 const login = (credentials) => {
-    const Authorization = Buffer.from(`APP${clientId}${clientSecret}`).toString('base64')
+    const Authorization = Buffer.from(`${clientId}:${clientSecret}`).toString('base64')
     const headers = { 'Content-Type': 'application/json', 'Authorization': `Basic ${Authorization}` };
     return axios.post(`${ENDPOINT}/login`, credentials, { headers });
 }
 
 
 // get the access token
-const getAccessToken = async (refreshToken) => {
+const getAccessToken = async (refresh_token) => {
     const headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
-    return axios.post(`${ENDPOINT}/token?grant_type=refresh_token&refresh_token=${refreshToken}/`, {}, headers);
+    const data = { 'grant_type': 'refresh_token', 'refresh_token': refresh_token }
+    return axios.post(`${ENDPOINT}/token`, data, headers);
 }
 
 // get accounts list
@@ -50,9 +51,9 @@ const joinTransactionsAndAccounts = async (accountList) => {
 // main function
 const getAccountsAndTransaction = async (credentials) => {
     try {
-        const refreshToken = await login(credentials);
-        const accessToken = await getAccessToken(refreshToken);
-        const { account: accountList } = await getAccountList(accessToken);
+        const { data: { refresh_token } } = await login(credentials);
+        const { data: { access_token } } = await getAccessToken(refresh_token);
+        const { account: accountList } = await getAccountList(access_token);
         return joinTransactionsAndAccounts(accountList);
 
     } catch (err) {
