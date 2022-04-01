@@ -1,4 +1,4 @@
-
+// reviewing
 var domain = "bank.local.fr"
 
 /**
@@ -12,9 +12,9 @@ var domain = "bank.local.fr"
  * @return {Object} All transactions available on the page
  */
 async function fetchTransactions(fromDate, authorization, jws = null, id, page, previousTransactions) {
-	console.log(`--- Fetch Trasactions page n°${page} ---`);
-	try {
-    var headers = {"Authorisation":  authorization }
+  console.log(`--- Fetch Trasactions page n°${page} ---`);
+  try {
+    var headers = { "Authorisation": authorization }
 
     if (jws) {
       headers = {
@@ -31,16 +31,16 @@ async function fetchTransactions(fromDate, authorization, jws = null, id, page, 
       }
     }
 
-	  var {code, response } = await doRequest('GET',
-      domain + '/accounts/'+ id + '/transactions?' + `page=${page}`,
+    var { code, response } = await doRequest('GET',
+      domain + '/accounts/' + id + '/transactions?' + `page=${page}`,
       headers);
 
 
-		if (response && code == 200 && response.data) {
+    if (response && code == 200 && response.data) {
       if (response.data.meta) {
         if (response.data.meta.hasPageSuivante) {
           let mouvements = response.data.Mouvements;
-          var date = mouvements[mouvements.length -1].dateValeur;
+          var date = mouvements[mouvements.length - 1].dateValeur;
           if (date <= fromDate) {
             console.log("FromDate is Reached - we don't need more transaction");
           } else {
@@ -63,11 +63,11 @@ async function fetchTransactions(fromDate, authorization, jws = null, id, page, 
     } else throw new Error();
 
     return [];
-	} catch (err) {
-		throw new CustomError({
+  } catch (err) {
+    throw new CustomError({
       function: 'fetchTransactions',
-			statusCode: 'CRASH',
-			rawError: e,
-		});
-	}
+      statusCode: 'CRASH',
+      rawError: e,
+    });
+  }
 }
