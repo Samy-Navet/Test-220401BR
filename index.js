@@ -11,7 +11,7 @@ const CREDENTIALS = { user: 'BankinUser', password: '12345678' };
 
 // login to get refresh token
 const login = (credentials) => {
-    const Authorization = Buffer.from(`${clientId}${clientSecret}`).toString('base64')
+    const Authorization = Buffer.from(`APP${clientId}${clientSecret}`).toString('base64')
     const headers = { 'Content-Type': 'application/json', 'Authorization': `Basic ${Authorization}` };
     return axios.post(`${ENDPOINT}/login`, credentials, { headers });
 }
